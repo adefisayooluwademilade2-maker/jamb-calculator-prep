@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExamPrep Nigeria | Past Questions</title>
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--text:#172033;--green:#008751;--muted:#64748b}
+body.dark{--bg:#101827;--card:#1e293b;--text:#f8fafc;--muted:#cbd5e1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+header{background:var(--green);color:white;text-align:center;padding:24px 12px}
+header h1{margin:0 0 8px}
+header p{margin:0}
+nav{display:flex;gap:8px;padding:12px;background:var(--card);overflow-x:auto}
+button{background:var(--green);color:white;border:0;border-radius:8px;padding:12px;cursor:pointer;font-size:15px}
+nav button{white-space:nowrap}
+main{max-width:850px;margin:auto;padding:16px}
+.card{background:var(--card);padding:18px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px #0001}
+.hidden{display:none!important}
+label{display:block;margin:12px 0 6px}
+select,input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:var(--card);color:var(--text)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.row button{flex:1}
+.option{display:block;width:100%;text-align:left;margin:8px 0;background:var(--bg);color:var(--text);border:1px solid #94a3b8}
+.option.selected{border:2px solid var(--green)}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+<h1>ExamPrep Nigeria</h1>
+<p>Past Questions • CBT Practice • Exam Preparation</p>
+</header>
+<nav>
+<button onclick="page('home')">Home</button>
+<button onclick="page('practice')">CBT Practice</button>
+<button onclick="toggleTheme()">🌙 Dark mode</button>
+</nav>
+<main>
+<section id="home" class="card">
+<h2>Welcome to ExamPrep Nigeria</h2>
+<p>Practise for your examinations and prepare with confidence.</p>
+<h3>Choose your examination</h3>
+<label for="exam">Examination</label>
+<select id="exam">
+<option>JAMB / UTME</option>
+<option>WAEC</option>
+<option>WAEC GCE</option>
+<option>NECO</option>
+<option>NECO GCE</option>
+</select>
+<label for="year">Year</label>
+<select id="year"></select>
+<label for="subject">Subject</label>
+<select id="subject">
+<option>Use of English</option>
+<option>Mathematics</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>Economics</option>
+<option>Government</option>
+<option>Literature in English</option>
+<option>Commerce</option>
+<option>Accounting</option>
+</select>
+<button onclick="startFromHome()">Find questions</button>
+<p class="muted">Question availability depends on the exam, year and subject.</p>
+</section>
+
+<section id="practice" class="card hidden">
+<h2>CBT Practice</h2>
+<p id="selection"></p>
+<div id="test">
+<p id="question"></p>
+<div id="options"></div>
+<p id="result"></p>
+<div class="row">
+<button onclick="previous()">Previous</button>
+<button onclick="next()">Next</button>
+<button onclick="submitTest()">Submit</button>
+</div>
+</div>
+</section>
+
+<section class="card">
+<h3>About this website</h3>
+<p>This website is being built to organize past questions by examination, year and subject.</p>
+<p class="muted">Only verified questions that have actually been added to the question bank can be practised. This initial version contains demonstration questions, not a complete historical archive.</p>
+</section>
+</main>
+<footer>ExamPrep Nigeria</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+function page(id){
+  $('home').classList.toggle('hidden',id!=='home');
+  $('practice').classList.toggle('hidden',id!=='practice');
+}
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('examTheme',document.body.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('examTheme')==='dark')document.body.classList.add('dark');
+
+for(let y=2026;y>=1950;y--){
+  const o=document.createElement('option');
+  o.value=y;o.textContent=y;$('year').appendChild(o);
+}
+
+/* Demonstration question only. Add verified question sets here. */
+const questionBank={
+  "JAMB / UTME":{
+    "Use of English":{
+      "2026":[
+        {q:"Choose the word nearest in meaning to 'rapid'.",options:["Slow","Quick","Weak","Late"],answer:1,explanation:"Rapid means quick or fast."}
+      ]
+    }
+  }
+};
+let questions=[],current=0,answers={},submitted=false;
+
+function startFromHome(){
+  const exam=$('exam').value,year=$('year').value,subject=$('subject').value;
+  questions=questionBank[exam]?.[subject]?.[year]||[];
+  current=0;answers={};submitted=false;
+  page('practice');
+  $('selection').textContent=exam+' • '+year+' • '+subject;
+  if(!questions.length){
+    $('question').textContent='No questions have been added for this selection yet.';
+    $('options').innerHTML='';
+    $('result').textContent='Choose another selection or check back as verified questions are added.';
+    $('test').classList.remove('hidden');
+    return;
+  }
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=questions[current];
+  $('question').textContent='Question '+(current+1)+' of '+questions.length+': '+q.q;
+  $('options').innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='option'+(answers[current]===i?' selected':'');
+    b.textContent=String.fromCharCode(65+i)+'. '+opt;
+    b.onclick=()=>{if(!submitted){answers[current]=i;renderQuestion()}};
+    $('options').appendChild(b);
+  });
+  $('result').textContent='';
+}
+function next(){if(current<questions.length-1){current++;renderQuestion()}}
+function previous(){if(current>0){current--;renderQuestion()}}
+function submitTest(){
+  if(submitted||!questions.length)return;
+  submitted=true;
+  let score=0;
+  questions.forEach((q,i)=>{if(answers[i]===q.answer)score++});
+  $('result').textContent='Score: '+score+'/'+questions.length+' — '+questions.map((q,i)=>'Q'+(i+1)+': '+q.explanation).join(' ');
+  renderOptionsAfterSubmit();
+}
+function renderOptionsAfterSubmit(){
+  const q=questions[current];
+  $('options').innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='option';
+    b.textContent=String.fromCharCode(65+i)+'. '+opt+(i===q.answer?' ✓ Correct answer':'');
+    $('options').appendChild(b);
+  });
+}
+</script>
+</body>
+  </html>
+  
